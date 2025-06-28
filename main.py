@@ -29,23 +29,23 @@ def create_files(userfile, datafile):
 
 def register_window():
     reg_root = ctkr.CTk()
-    reg_root.title("Registro de Usuário")
+    reg_root.title("User Log=In")
     reg_root.geometry("400x400")
 
-    title = ctkr.CTkLabel(master=reg_root, text="Registre-se", font=ctkr.CTkFont(size=20, weight="bold"))
+    title = ctkr.CTkLabel(master=reg_root, text="Register", font=ctkr.CTkFont(size=20, weight="bold"))
     title.pack(pady=20)
 
-    name_label = ctkr.CTkLabel(master=reg_root, text="Nome:")
+    name_label = ctkr.CTkLabel(master=reg_root, text="Name:")
     name_label.pack()
     name_entry = ctkr.CTkEntry(master=reg_root)
     name_entry.pack(pady=5)
 
-    birth_label = ctkr.CTkLabel(master=reg_root, text="Data de Nascimento:")
+    birth_label = ctkr.CTkLabel(master=reg_root, text="Birthdayte:")
     birth_label.pack()
     birth_entry = DateEntry(master=reg_root, date_pattern="yyyy-mm-dd", text_color="#FFCC70")
     birth_entry.pack(pady=5)
 
-    lang_label = ctkr.CTkLabel(master=reg_root, text="Idioma:")
+    lang_label = ctkr.CTkLabel(master=reg_root, text="Language:")
     lang_label.pack()
     lang_combo = ctkr.CTkComboBox(master=reg_root, values=["en-US", "pt-BR"])
     lang_combo.pack(pady=5)
@@ -56,7 +56,7 @@ def register_window():
         lang = lang_combo.get().strip()
 
         if not name or not birth or not lang:
-            messagebox.showerror("Erro", "Preencha todos os campos!")
+            messagebox.showerror(language[selected_language]["messagebox"]["emptyerror"][0], language[selected_language]["messagebox"]["emptyerror"][1])
             return
 
         user_data = {
@@ -120,7 +120,7 @@ def load_user(option):
 
 def find_language(user, data):
     if file_exists(user, data):
-        return "en-US" #return load_user("lang")
+        return load_user("lang")
     else: 
         return "en-US"
     
@@ -132,8 +132,11 @@ language = {
         "windows": ["Inicio", "Escrever", "Consultar"],
         "labels": ["Selecione um dia", "Digite um título", "Anotação", "Seu humor"],
         "humor": ["Maravilhoso", "Bom", "Normal", "Ruim", "Péssimo"],
-        "buttons": ["Salvar", "Limpar"],
-        "months_map": {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "Dezember"}
+        "buttons": ["Salvar", "Limpar", "Ver Anotações"],
+        "months_map": {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "Dezember"},
+        "messagebox": {"emptyerror": ["Erro", "Preencha todos os campos!"],
+                    "warnings": ["Aviso", "Essa data já existe. Deseja sobrescrever"],
+                    "success": ["Sucesso", "Entrada salva com sucesso!"]}
     },
     "en-US": {
         "cumpliment": ["Good Evening", "Good Morning", "Good Afternoon"],
@@ -141,8 +144,11 @@ language = {
         "windows": ["Home", "Write", "Search"],
         "labels": ["Select a day", "Enter a title", "Enter annotation", "Enter humor"],
         "humor": ["Wonderful", "Good", "Normal", "Bad", "Worst"],
-        "buttons": ["Save entry", "Clear"],
-        "months_map": {"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"}
+        "buttons": ["Save entry", "Clear", "See Entries"],
+        "months_map": {"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"},
+        "messagebox": {"emptyerror": ["Error", "Please fill all fields!"],
+                    "warnings": ["Warning", "There's already a note registered on this date. Do you want to replace?"],
+                    "success": ["Success", "Entry saved!"]}
     }
 }
 
@@ -228,7 +234,6 @@ tabview.pack(pady=20, padx=20)
 
 tabview.add(language[selected_language]["windows"][0])
 tabview.add(language[selected_language]["windows"][1])
-#tabview.add(language[selected_language]["windows"][2])
 
 label_ref = ctkr.CTkLabel(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["labels"][0])
 label_ref.pack()
@@ -257,16 +262,16 @@ def save_anotation():
     humor = entry_humor.get().strip()
 
     if not (data and title_text and anotation and humor):
-        messagebox.showerror("Error", "Preencha todos os campos!")
+        messagebox.showerror(language[selected_language]["messagebox"]["emptyerror"][0], language[selected_language]["messagebox"]["emptyerror"][1])
         return
 
     confirmed = True
     if data in list_dates():
-        confirmed = messagebox.askyesno("Aviso", "Essa data já existe. Deseja sobrescrever?")
+        confirmed = messagebox.askyesno(language[selected_language]["messagebox"]["warnings"][0], language[selected_language]["messagebox"]["warnings"][1])
 
     if confirmed:
         add_data(data, title_text, anotation, humor, selected_language)
-        messagebox.showinfo("Success", "Entrada salva com sucesso!")
+        messagebox.showinfo(language[selected_language]["messagebox"]["success"][0], language[selected_language]["messagebox"]["success"][1])
         clear_fields()
 
 def clear_fields():
@@ -279,9 +284,6 @@ submit.pack(side=ctkr.LEFT, padx=10, pady=10, fill="both", expand=True)
 
 clear = ctkr.CTkButton(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["buttons"][1], command=clear_fields, corner_radius=40, fg_color="transparent", border_width=2)
 clear.pack(side=ctkr.LEFT, padx=10, pady=10, fill="both", expand=True)
-
-
-
 
 def show_month_entries(selected_month):
     window = ctkr.CTkToplevel()
@@ -315,8 +317,6 @@ def show_month_entries(selected_month):
         )
         label.pack(padx=5, pady=5, fill="x", expand=True)
 
-
-
 month_selector = ctkr.CTkComboBox(
     master=tabview.tab(language[selected_language]["windows"][0]),
     values=[f"{num} - {name}" for num, name in language[selected_language]["months_map"].items()],
@@ -326,7 +326,7 @@ month_selector.pack(pady=10)
 
 view_btn = ctkr.CTkButton(
     master=tabview.tab(language[selected_language]["windows"][0]),
-    text="Ver Anotações",
+    text=language[selected_language]["buttons"][2],
     command=lambda: show_month_entries(month_selector.get().split(" - ")[0]),
     corner_radius=40,
     fg_color="#4158D0",
@@ -334,8 +334,4 @@ view_btn = ctkr.CTkButton(
 )
 view_btn.pack(pady=10)
 
-
-
-
 root.mainloop()
-
