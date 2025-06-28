@@ -70,7 +70,7 @@ def register_window():
             json.dump([user_data], f, indent=4)
 
 
-        messagebox.showinfo("Sucesso", "Usuário registrado com sucesso!")
+        messagebox.showinfo(language[selected_language]["success"][0], language[selected_language]["success"][1])
         reg_root.destroy()
         root.deiconify()
 
@@ -128,15 +128,16 @@ selected_language = find_language(userfile, datafile)
 language = {
     "pt-BR": {
         "cumpliment": ["Boa noite", "Bom dia", "Boa tarde"],
-        "date_format": "dd-mm-yyyy",
+        "date_format": "yyyy-mm-dd",
         "windows": ["Inicio", "Escrever", "Consultar"],
         "labels": ["Selecione um dia", "Digite um título", "Anotação", "Seu humor"],
         "humor": ["Maravilhoso", "Bom", "Normal", "Ruim", "Péssimo"],
         "buttons": ["Salvar", "Limpar", "Ver Anotações"],
-        "months_map": {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "Dezember"},
+        "months_map": {"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"},
         "messagebox": {"emptyerror": ["Erro", "Preencha todos os campos!"],
                     "warnings": ["Aviso", "Essa data já existe. Deseja sobrescrever"],
-                    "success": ["Sucesso", "Entrada salva com sucesso!"]}
+                    "success": ["Sucesso", "Entrada salva com sucesso!"],
+                    "notfound": ["Erro", "Nenhuma anotação encontrada para este mês."]}
     },
     "en-US": {
         "cumpliment": ["Good Evening", "Good Morning", "Good Afternoon"],
@@ -145,10 +146,11 @@ language = {
         "labels": ["Select a day", "Enter a title", "Enter annotation", "Enter humor"],
         "humor": ["Wonderful", "Good", "Normal", "Bad", "Worst"],
         "buttons": ["Save entry", "Clear", "See Entries"],
-        "months_map": {"01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"},
+        "months_map": {"01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June", "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "Dezember"},
         "messagebox": {"emptyerror": ["Error", "Please fill all fields!"],
                     "warnings": ["Warning", "There's already a note registered on this date. Do you want to replace?"],
-                    "success": ["Success", "Entry saved!"]}
+                    "success": ["Success", "Entry saved!"],
+                    "notfound": ["Error", "No entries founded for this month."]}
     }
 }
 
@@ -189,8 +191,8 @@ def add_data(date_reference, title, anotation, humor, selected_language):
         "month": encrypt_data(date_reference[5:7]),
         "title": encrypt_data(title),
         "humor": encrypt_data(humor),
-        "days_birth": encrypt_data(str((datetime.strptime(date_reference, "%Y-%m-%d") - datetime.strptime(load_user("birth"), "%Y-%m-%d")).days)),#converted to string
-        "days_ytd": encrypt_data(str((datetime.strptime(date_reference, "%Y-%m-%d") - datetime.strptime(f"{date_reference[0:4]}-01-01", "%Y-%m-%d")).days + 1)),#converted to string
+        "days_birth": encrypt_data(str((datetime.strptime(date_reference, "%Y-%m-%d") - datetime.strptime(load_user("birth"), "%Y-%m-%d")).days)),
+        "days_ytd": encrypt_data(str((datetime.strptime(date_reference, "%Y-%m-%d") - datetime.strptime(f"{date_reference[0:4]}-01-01", "%Y-%m-%d")).days + 1)),
         "anotation": encrypt_data(anotation),
         "time_registered": encrypt_data(str(datetime.now())),
         "lang_registered": encrypt_data(selected_language)
@@ -242,12 +244,22 @@ frame_ref.pack(pady=5)
 calendar = DateEntry(master=frame_ref, date_pattern=language[selected_language]["date_format"], text_color="#FFCC70")
 calendar.pack()
 
-entry_title = ctkr.CTkEntry(master=tabview.tab(language[selected_language]["windows"][1]), border_color="#FFCC70", placeholder_text = language[selected_language]["labels"][1], width=300, text_color="#FFCC70")
+entry_title = ctkr.CTkEntry(master=tabview.tab(language[selected_language]["windows"][1]), 
+                            border_color="#FFCC70", 
+                            placeholder_text = language[selected_language]["labels"][1],
+                            width=300, 
+                            text_color="#FFCC70")
 entry_title.pack(pady=10)
 
 label_anotation = ctkr.CTkLabel(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["labels"][2])
 label_anotation.pack()
-entry_note = ctkr.CTkTextbox(master=tabview.tab(language[selected_language]["windows"][1]), width=400, height=150, corner_radius=16, border_color="#FFCC70", scrollbar_button_color="#FFCC70", border_width=2)
+entry_note = ctkr.CTkTextbox(master=tabview.tab(language[selected_language]["windows"][1]), 
+                             width=400, 
+                             height=150, 
+                             corner_radius=16, 
+                             border_color="#FFCC70", 
+                             scrollbar_button_color="#FFCC70", 
+                             border_width=2)
 entry_note.pack(pady=10)
 
 label_humor = ctkr.CTkLabel(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["labels"][3])
@@ -279,19 +291,28 @@ def clear_fields():
     entry_note.delete("0.0", "end")
     entry_humor.set("")
 
-submit = ctkr.CTkButton(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["buttons"][0], command=save_anotation, corner_radius=40, fg_color="#4158D0", hover_color= "#4D68EF")
+submit = ctkr.CTkButton(master=tabview.tab(language[selected_language]["windows"][1]), 
+                        text=language[selected_language]["buttons"][0], 
+                        command=save_anotation, 
+                        corner_radius=40, 
+                        fg_color="#4158D0", 
+                        hover_color= "#4D68EF")
 submit.pack(side=ctkr.LEFT, padx=10, pady=10, fill="both", expand=True)
 
-clear = ctkr.CTkButton(master=tabview.tab(language[selected_language]["windows"][1]), text=language[selected_language]["buttons"][1], command=clear_fields, corner_radius=40, fg_color="transparent", border_width=2)
+clear = ctkr.CTkButton(master=tabview.tab(language[selected_language]["windows"][1]), 
+                       text=language[selected_language]["buttons"][1], 
+                       command=clear_fields, 
+                       corner_radius=40, 
+                       fg_color="transparent", 
+                       border_width=2)
 clear.pack(side=ctkr.LEFT, padx=10, pady=10, fill="both", expand=True)
 
 def show_month_entries(selected_month):
-    window = ctkr.CTkToplevel()
     notes = read_data()
     month_notes = [n for n in notes if n["date_reference"][5:7] == selected_month]
 
     if not month_notes:
-        messagebox.showinfo("Info", "Nenhuma anotação encontrada para este mês.")
+        messagebox.showinfo(language[selected_language]["notfound"][0], language[selected_language]["notfound"][1])
         return
 
     window = ctkr.CTkToplevel()
